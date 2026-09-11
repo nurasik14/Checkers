@@ -1,95 +1,108 @@
 # Checkers
 
-## Короткое описание продукта
+A modern, multiplayer web checkers game built with plain JavaScript and Firebase. The project is designed as a deployable online product (lobby, profiles, chat, match history, server-side move validation), not just a demo.
 
-Это современная веб-платформа для игры в шашки, созданная как реальный онлайн-продукт, а не просто демонстрация доски. Проект рассчитан на игроков, которые хотят быстро начать партию с другом, сохранить профиль, общаться в чате и играть онлайн без лишнего ожидания.
+## Table of contents
+- [Demo](#demo)
+- [Features](#features)
+- [How to play](#how-to-play)
+- [Technology stack](#technology-stack)
+- [Architecture overview](#architecture-overview)
+- [Getting started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Local development](#local-development)
+  - [Firebase setup](#firebase-setup)
+- [Project structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
+- [Author](#author)
 
-**Для кого это:**
+## Demo
+(No hosted demo included in the repository.)  
+The app renders an 8×8 checkers board in the browser, provides a lobby for creating/joining games, supports spectators and chat, and saves match history.
 
-- для игроков, которые хотят устраивать быстрые шашочные дуэли вдвоём по сети,
+## Features
+- Online lobby with game slots and connection status
+- Create a new game or join by Game ID
+- Google sign-in and guest mode
+- Spectator mode to watch matches
+- Real-time game state: turn, mode, spectators count
+- Built-in chat with avatar and timestamp
+- "Show moves" helper to highlight legal moves
+- Surrender and quick return to lobby
+- Player profiles with match history and win/loss statistics
+- Two game modes provided: Classic and Atari (extendable)
+- "Go Pro" UI element as a monetization prototype
+- Server-side move validation and anti-cheat implemented with Firebase Cloud Functions
+- Local dev support via Firebase Emulator Suite
 
-**Почему это ценно:**
+## How to play
+1. Open the lobby.
+2. Create a new game or enter an existing Game ID to join.
+3. Players move pieces diagonally. Captures, kinging, and forced captures follow standard checkers rules implemented in the game engine.
+4. Use "Spectate" to watch another match.
+5. Chat with participants during the game.
+6. Use "Surrender" to end a match early; the app also handles disconnects automatically.
 
-- это не просто статическая игра — это полноценный мультиплеерный сервис, где каждый матч хранится, а ход и состояние синхронизируются в реальном времени;
-- встроенная авторизация, профиль и история партий делают проект готовым к развитию в сервис с возвратом пользователей;
-- архитектура на чистом JavaScript + Firebase позволяет быстро расширять игру новыми режимами, AI и монетизацией.
-
-## Что сделано
-
-- Реализован онлайн-лобби для создания, присоединения и просмотра игры.
-- Поддерживается авторизация Google и режим гостя.
-- Игроки могут создавать новую партию или присоединяться по Game ID.
-- Есть режим зрителя, позволяющий наблюдать за матчем.
-- Игра работает по правилам шашек: ходы по диагонали, захваты, превращение в дамку, обязательные взятия.
-- Встроен чат для общения во время партии.
-- Добавлена кнопка возврата в лобби и автоматическое завершение партии, если соперник отключается.
-- Серверная логика на Firebase Cloud Functions проверяет ходы, предотвращает мошенничество и сохраняет результаты.
-- Есть профиль игрока с историей партий, статистикой побед/поражений и цветом аватара.
-- Поддержка двух игровых режимов: Classic и Atari. (можно добавлять еще + при pro версий свою добавить)
-- В интерфейсе есть предложение «Go Pro» как прототип монетизации.
-
-## Основные возможности
-
-- Лобби с игровыми слотами и статусом подключения.
-- Кнопка «Create new game» и поле для ввода Game ID.
-- Режим зрителя («Spectate»).
-- Секция с текущим состоянием партии: ход, режим, количество зрителей.
-- Кнопка «Surrender» и «Lobby» для быстрого выхода.
-- Подсказка возможных ходов по нажатию «Show moves».
-- Встроенный чат с аватаром и временем отправки.
-- Профиль с историей и статистикой игр.
-- Поддержка локального dev-режима с Firebase эмуляторами.
-
-## Как это сделано
-
-### Фронтенд
-
-- Чистый HTML/CSS/JavaScript в папке `public/`.
-- Модульная структура: `main.js`, `game.js`, `ui.js`, `engine.js`, `module.js`, `auth.js`, `firebase.js`.
-- Интерфейс рендерит поле 8×8, подсвечивает ходы, обновляет состояние игры и чат.
-- `engine.js` реализует правила шашек и проверку допустимых ходов.
-- `firebase.js` настраивает Firebase Realtime Database, Authentication и Functions.
-
-### Бэкэнд
-
-- Firebase Realtime Database хранит состояние партии, игроков, чат и статистику.
-- Firebase Auth обеспечивает авторизацию и сопоставление ходов с игроками.
-- Cloud Functions в `functions/index.js` проверяют ходы, создают игру, обрабатывают сдачу, учитывают отключения и записывают результаты в профиль игрока.
-- Функция расписания очищает устаревшие завершённые партии.
-
-### Архитектура
-
-- Клиент подписывается на `games/{gameId}` и получает обновления в реальном времени.
-- Игровые действия проходят через безопасный серверный валидатор: `createGame`, `makeMove`, `surrenderGame`, `claimWin`, `joinSpectator`, `sendChatMessage`.
-- При отключении игрока используется Firebase `onDisconnect` для надежного обновления статуса.
-- История и статистика сохраняются в узле `players/{playerId}`.
-
-## Стек технологий
-
-- HTML / CSS / JavaScript
+## Technology stack
+- HTML / CSS / JavaScript (frontend)
 - Firebase Realtime Database
-- Firebase Authentication
-- Firebase Cloud Functions
-- Firebase Emulator Suite (для локальной разработки)
+- Firebase Authentication (Google + guest)
+- Firebase Cloud Functions (server-side validation)
+- Firebase Emulator Suite (local development)
 
-## Как запустить
+## Architecture overview
+- Frontend subscribes to `games/{gameId}` in Realtime Database and receives real-time updates.
+- All game actions (createGame, makeMove, surrenderGame, claimWin, joinSpectator, etc.) are validated server-side by Cloud Functions to prevent cheating.
+- `onDisconnect` handlers ensure reliable presence updates when a player disconnects.
+- Player profiles, history, and statistics are stored under `players/{playerId}`.
 
-1. Откройте проект в VS Code.
-2. Запустите `npm install` в папке `functions`.
-3. Настройте Firebase проект или эмуляторы.
-4. Запустите фронтенд из `public/` через любой локальный сервер.
-5. Откройте сайт и войдите через Google или как гость.
+## Project structure
+- `public/` — static frontend files (HTML, CSS, JS)
+  - key JS modules: `main.js`, `game.js`, `ui.js`, `engine.js`, `module.js`, `auth.js`, `firebase.js`
+- `functions/` — Firebase Cloud Functions (server-side validation, game lifecycle, scheduled cleanup)
 
-## Почему этот проект выделяется
+## Getting started
 
-- Это не просто симуляция: это полноценная сеть с реальными игровыми сессиями.
-- Игра готова к развертыванию как продукт: поддержку профилей, матчей и чат.
-- Продукт ориентирован на удержание: быстрые матчи, повторный вход, видимый прогресс.
+### Prerequisites
+- Node.js and npm
+- Firebase CLI (for deployment / emulator)
+- A Firebase project (or use the Emulator Suite for local development)
 
-## Для кого это
+### Local development
+1. Open the project in your editor (e.g., VS Code).
+2. Install functions dependencies:
+   ```
+   cd functions
+   npm install
+   ```
+3. Start the frontend by serving the `public/` directory with any static server (or use Live Server extension).
+4. For full local emulation, configure Firebase emulators and run:
+   ```
+   firebase emulators:start
+   ```
+5. Open the site in your browser and sign in with Google or as a guest.
 
-- Для игроков, которые хотят сыграть в шашки онлайн с другом.
+### Firebase setup
+- Create a Firebase project and enable:
+  - Realtime Database
+  - Authentication (Google provider)
+  - Cloud Functions
+- Configure your frontend `firebase.js` with your Firebase project credentials.
+- Deploy functions when ready:
+  ```
+  cd functions
+  firebase deploy --only functions
+  ```
 
----
+## Contributing
+Contributions, bug reports, and feature requests are welcome. Recommended workflow:
+- Fork the repo
+- Create a branch for your feature/fix
+- Open a PR with a clear description and any testing instructions
 
-_Этот проект создан как современное веб-приложение для онлайн-шашек с реальным мультиплеером, профилями и чатами. Он демонстрирует продуктовую ценность и готовность к расширению._
+## License
+See the LICENSE file in the repository for license details.
+
+## Author
+nurasik14
